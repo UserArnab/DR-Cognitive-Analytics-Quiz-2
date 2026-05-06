@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cognitive Analytics Quiz 2</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e5e7eb;
+      --muted:#a1a1aa;
+      --accent:#60a5fa;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 20% 0%, #14213d 0%, var(--bg) 45%, #070b15 100%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .wrap{width:min(980px, 100%);}
+    .header{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px;}
+    .title h1{margin:0; font-size: clamp(22px, 2.5vw, 30px); letter-spacing:.2px;}
+    .title p{margin:6px 0 0; color:var(--muted); font-size:14px}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border);
+      background: rgba(255,255,255,.04); border-radius:999px; box-shadow: var(--shadow); white-space:nowrap;}
+    .pill strong{font-variant-numeric:tabular-nums}
+    .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px;}
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+
+    .card{background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow:hidden;}
+    .card .inner{padding:18px;}
+    .section-title{margin:0 0 10px; font-size:16px; color:#dbeafe}
+    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px}
+    input[type="text"]{width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--border);
+      background: rgba(0,0,0,.25); color:var(--text); outline:none;}
+    input[type="text"]:focus{border-color: rgba(96,165,250,.6); box-shadow:0 0 0 4px rgba(96,165,250,.15)}
+
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+    button{appearance:none; border:none; cursor:pointer; padding:12px 14px; border-radius:14px;
+      background: rgba(255,255,255,.06); color:var(--text); border:1px solid var(--border);
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;}
+    button:hover{background: rgba(255,255,255,.09)}
+    button:active{transform: translateY(1px)}
+    button.primary{background: rgba(96,165,250,.18); border-color: rgba(96,165,250,.35)}
+    button.primary:hover{background: rgba(96,165,250,.26)}
+    button.danger{background: rgba(251,113,133,.14); border-color: rgba(251,113,133,.32)}
+    button.danger:hover{background: rgba(251,113,133,.22)}
+    button.ghost{background: transparent}
+    button[disabled]{opacity:.45; cursor:not-allowed}
+
+    .meta{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;}
+    .meta .box{padding:12px; border-radius:14px; border:1px solid var(--border); background: rgba(0,0,0,.22);}
+    .meta .box .k{color:var(--muted); font-size:12px}
+    .meta .box .v{margin-top:6px; font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+    .progress{height:10px; background: rgba(255,255,255,.06); border-radius:999px; overflow:hidden; border:1px solid var(--border);}
+    .bar{height:100%; width:0%; background: linear-gradient(90deg, rgba(96,165,250,.9), rgba(52,211,153,.9));}
+
+    .qtitle{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
+    .qtitle h2{margin:0; font-size:18px}
+    .qtitle .tag{color:var(--muted); font-size:12px; padding:6px 10px; border:1px solid var(--border);
+      border-radius:999px; background: rgba(0,0,0,.2)}
+    .qtext{margin:10px 0 14px; color:#e5e7eb; line-height:1.45}
+
+    .options{display:grid; gap:10px; margin-top:12px}
+    .opt{display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:14px; border:1px solid var(--border);
+      background: rgba(0,0,0,.18); cursor:pointer;}
+    .opt:hover{border-color: rgba(96,165,250,.35)}
+    .opt input{margin-top:3px}
+    .opt .otext{line-height:1.35}
+
+    .note{color:var(--muted); font-size:13px; margin:10px 0 0}
+    .hint{color:#cbd5e1; font-size:13px; margin:12px 0 0; padding:12px; border-radius:14px;
+      border:1px dashed rgba(255,255,255,.18); background: rgba(0,0,0,.16)}
+
+    .result{display:grid; gap:10px;}
+    .score{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px; border-radius:16px;
+      border:1px solid var(--border); background: rgba(0,0,0,.18);}
+    .score .big{font-size:20px; font-weight:800}
+    .score .small{color:var(--muted); font-size:12px}
+
+    .review{max-height: 380px; overflow:auto; padding-right:6px;}
+    .item{border:1px solid var(--border); background: rgba(0,0,0,.16); border-radius:16px; padding:12px; margin-bottom:10px;}
+    .item .top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .item .top .n{font-weight:800}
+    .item .top .badge{font-size:12px; padding:5px 10px; border-radius:999px; border:1px solid var(--border)}
+    .badge.good{color: var(--good); border-color: rgba(52,211,153,.35); background: rgba(52,211,153,.08)}
+    .badge.bad{color: var(--bad); border-color: rgba(251,113,133,.35); background: rgba(251,113,133,.08)}
+    .badge.na{color: var(--warn); border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.08)}
+    .item .q{margin:8px 0 10px; color:#e5e7eb}
+    .item .a{margin:0; color:var(--muted); font-size:13px; line-height:1.4}
+
+    .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:24px;
+      background: rgba(0,0,0,.65); z-index:999;}
+    .overlay .modal{width:min(720px, 100%); background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow); padding:18px;}
+    .modal h3{margin:0 0 8px; font-size:18px}
+    .modal p{margin:0; color:var(--muted); line-height:1.5}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="title">
+        <h1>Cognitive Analytics Quiz 2</h1>
+        <p>Supervised | Unsupervised ML | Evaluation Metrics | ROC/AUC | Feature Engineering</p>
+      </div>
+      <div class="pill" id="timerPill" style="display:none">
+        <span aria-hidden="true">🕒</span>
+        <span>Time left:</span>
+        <strong id="timeLeft">20:00</strong>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="inner" id="mainPanel">
+
+          <!-- Setup screen -->
+          <div id="screenSetup">
+            <h2 class="section-title">Assessment Setup</h2>
+            <div class="hint">
+              <strong>Important:</strong> Switching tabs/windows will <strong>cancel</strong> the assessment.
+              Total time limit is <strong>20 minutes</strong> for 10 questions (no per-question limit).
+              <br/><strong>Retake rule:</strong> Same <em>Name + SAP ID</em> cannot attempt twice on this device/browser.
+            </div>
+
+            <label for="studentName">Student Name</label>
+            <input id="studentName" type="text" placeholder="Enter your full name" autocomplete="name" />
+
+            <label for="sapId">SAP ID</label>
+            <input id="sapId" type="text" placeholder="Enter your SAP ID" autocomplete="off" />
+
+            <label for="evaluatorName">Evaluator Name</label>
+            <input id="evaluatorName" type="text" placeholder="Enter evaluator/teacher name" />
+
+            <label for="subjectName">Subject Name</label>
+            <input id="subjectName" type="text" value="Cognitive Analytics" />
+
+            <div class="btnrow">
+              <button class="primary" id="startBtn" disabled>Start Assessment</button>
+              <button class="ghost" id="demoFill">Auto-fill (demo)</button>
+            </div>
+
+            <p class="note">Tip: Avoid switching tabs or opening other apps while the quiz is running.</p>
+          </div>
+
+          <!-- Quiz screen -->
+          <div id="screenQuiz" style="display:none">
+            <div class="qtitle">
+              <h2 id="qHeading">Question</h2>
+              <span class="tag" id="qTag">1 / 10</span>
+            </div>
+
+            <div class="progress" aria-label="Progress">
+              <div class="bar" id="progressBar"></div>
+            </div>
+
+            <p class="qtext" id="qText"></p>
+            <div class="options" id="options"></div>
+
+            <div class="btnrow">
+              <button id="resetBtn">Reset Answer</button>
+              <button class="primary" id="nextBtn">Next Question</button>
+              <button class="danger" id="submitBtn" style="display:none">Submit Quiz</button>
+            </div>
+
+            <p class="note">No per-question time limit. Total time: 20 minutes.</p>
+          </div>
+
+          <!-- Result screen -->
+          <div id="screenResult" style="display:none">
+            <h2 class="section-title">Result Summary</h2>
+            <div class="result">
+              <div class="score">
+                <div>
+                  <div class="big" id="scoreLine">Score: --/10</div>
+                  <div class="small" id="scoreMeta">Correct: -- | Incorrect: -- | Unanswered: --</div>
+                </div>
+                <div style="text-align:right">
+                  <div class="small">Attempted on</div>
+                  <div id="attemptTime" style="font-weight:700"></div>
+                </div>
+              </div>
+
+              <div class="btnrow">
+                <button class="primary" id="pdfBtn">Download PDF Report</button>
+                <button id="restartBtn">Restart (new attempt)</button>
+              </div>
+
+              <div class="review" id="review"></div>
+            </div>
+          </div>
+
+          <!-- Cancel screen -->
+          <div id="screenCancelled" style="display:none">
+            <h2 class="section-title" style="color:var(--bad)">Assessment Cancelled</h2>
+            <div class="hint" style="border-color: rgba(251,113,133,.45)">
+              The assessment was cancelled because the tab/window was switched.
+              Please contact the evaluator if this was accidental.
+            </div>
+            <div class="btnrow">
+              <button id="backToSetup" class="primary">Back to Setup</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Side panel -->
+      <div class="card">
+        <div class="inner">
+          <h2 class="section-title">Details</h2>
+          <div class="meta">
+            <div class="box"><div class="k">Student</div><div class="v" id="mStudent">--</div></div>
+            <div class="box"><div class="k">SAP ID</div><div class="v" id="mSap">--</div></div>
+            <div class="box"><div class="k">Evaluator</div><div class="v" id="mEvaluator">--</div></div>
+            <div class="box"><div class="k">Subject</div><div class="v" id="mSubject">--</div></div>
+          </div>
+
+          <div class="hint" style="margin-top:14px">
+            <strong>Coverage:</strong>
+            <ul style="margin:10px 0 0; padding-left:18px; color:var(--muted)">
+              <li>Supervised vs. unsupervised learning nuances</li>
+              <li>Precision / Recall / F1 / Accuracy trade-offs</li>
+              <li>ROC-AUC interpretation under imbalance</li>
+              <li>Clustering: silhouette, DBSCAN, k-means</li>
+              <li>Feature engineering and leakage</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3 id="overlayTitle">Notice</h3>
+      <p id="overlayText">...</p>
+      <div class="btnrow" style="margin-top:14px">
+        <button class="primary" id="overlayBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- jsPDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <script>
+    // ==========================================================
+    // Alternate Question Bank (10 questions, 4 options each)
+    // ==========================================================
+    const QUESTIONS = [
+      {
+        id: 1,
+        topic: "Evaluation Metrics",
+        q: "Two models are tested on the <strong>same</strong> dataset.<br/>Model A: Precision=0.80, Recall=0.40<br/>Model B: Precision=0.50, Recall=0.70<br/>Which statement is <strong>correct</strong>?",
+        options: [
+          "Model A has a higher F1-score than Model B.",
+          "Model B has a higher F1-score than Model A.",
+          "Both have identical F1-score because precision and recall trade off.",
+          "Cannot compare without knowing class balance."
+        ],
+        answer: 1,
+        rationale: "F1=2PR/(P+R): A≈0.533, B≈0.583 → B is higher."
+      },
+      {
+        id: 2,
+        topic: "ROC/AUC vs PR-AUC",
+        q: "In a dataset with <strong>extreme class imbalance</strong>, which metric is usually more informative for selecting a threshold when the positive class is rare?",
+        options: [
+          "ROC-AUC because it is threshold-free.",
+          "PR-AUC (Precision–Recall AUC) because it focuses on positive predictive performance.",
+          "Accuracy because it directly measures correctness.",
+          "R² because it is robust to imbalance."
+        ],
+        answer: 1,
+        rationale: "PR-based metrics emphasize performance on the positive class and are often more sensitive under imbalance."
+      },
+      {
+        id: 3,
+        topic: "Regularization",
+        q: "Which statement about <strong>L1 vs L2 regularization</strong> is most accurate?",
+        options: [
+          "L2 regularization tends to produce sparse solutions (many zeros).",
+          "L1 regularization tends to push some coefficients exactly to zero.",
+          "L1 always improves recall and L2 always improves precision.",
+          "L1 cannot be used with logistic regression."
+        ],
+        answer: 1,
+        rationale: "L1 encourages sparsity; L2 typically shrinks coefficients but rarely makes them exactly zero."
+      },
+      {
+        id: 4,
+        topic: "K-means",
+        q: "Which change most directly reduces the impact of <strong>outliers</strong> on K-means clustering?",
+        options: [
+          "Switching from Euclidean distance to Manhattan distance while keeping K-means unchanged.",
+          "Using K-medoids (PAM) instead of K-means.",
+          "Increasing K until each point becomes its own cluster.",
+          "Removing scaling so large features dominate."
+        ],
+        answer: 1,
+        rationale: "K-medoids uses actual data points as centers, making it more robust to outliers than mean-based centroids."
+      },
+      {
+        id: 5,
+        topic: "Hierarchical Clustering",
+        q: "Ward linkage in hierarchical clustering primarily tries to minimize:",
+        options: [
+          "Maximum pairwise distance between clusters.",
+          "Increase in within-cluster variance after merging.",
+          "Average distance between all points across clusters.",
+          "Number of clusters created per merge."
+        ],
+        answer: 1,
+        rationale: "Ward’s method merges clusters that lead to the smallest increase in within-cluster sum of squares (variance)."
+      },
+      {
+        id: 6,
+        topic: "DBSCAN",
+        q: "If you <strong>increase minPts</strong> in DBSCAN while keeping ε fixed, what is the most typical effect?",
+        options: [
+          "More points become core points and fewer become noise.",
+          "Fewer points qualify as core points; noise often increases.",
+          "Clusters always split into smaller clusters.",
+          "DBSCAN becomes equivalent to K-means."
+        ],
+        answer: 1,
+        rationale: "Higher minPts makes density harder to satisfy, so fewer cores and often more noise."
+      },
+      {
+        id: 7,
+        topic: "Accuracy vs Balanced Accuracy",
+        q: "A classifier achieves 98% accuracy on a dataset where 98% examples are negative. Which is the best interpretation?",
+        options: [
+          "The classifier is excellent regardless of recall.",
+          "The classifier might be predicting mostly negatives; balanced metrics should be checked.",
+          "High accuracy implies high ROC-AUC.",
+          "This guarantees high precision for the positive class."
+        ],
+        answer: 1,
+        rationale: "With imbalance, accuracy can be misleading; check recall/precision/balanced accuracy/PR-AUC."
+      },
+      {
+        id: 8,
+        topic: "Feature Engineering (Leakage - Time Series)",
+        q: "Which feature creation is the <strong>clearest target leakage</strong> in time-series forecasting?",
+        options: [
+          "Lag feature: y(t−1) used to predict y(t).",
+          "Rolling mean over last 7 days ending at time t−1.",
+          "Using y(t+1) (future value) as an input feature for predicting y(t).",
+          "Encoding day-of-week from timestamp."
+        ],
+        answer: 2,
+        rationale: "Using future information (y(t+1)) leaks the target from the future into the present prediction."
+      },
+      {
+        id: 9,
+        topic: "Feature Engineering (High Cardinality)",
+        q: "A categorical feature has 100,000 unique values. Which approach is often preferable over one-hot encoding for scalable models?",
+        options: [
+          "One-hot encoding with 100,000 dummy columns is always best.",
+          "Hashing trick (feature hashing) or learned embeddings.",
+          "Drop the feature because it must be useless.",
+          "Convert categories to integers and treat them as ordinal."
+        ],
+        answer: 1,
+        rationale: "Hashing/embeddings handle high-cardinality categories without exploding dimensionality."
+      },
+      {
+        id: 10,
+        topic: "Multiclass Metrics",
+        q: "In multiclass classification with class imbalance, <strong>macro-F1</strong> differs from <strong>micro-F1</strong> because:",
+        options: [
+          "Macro-F1 weights each class by its frequency; micro-F1 weights each class equally.",
+          "Macro-F1 averages per-class F1 equally; micro-F1 aggregates decisions across classes (frequency-weighted).",
+          "Micro-F1 is always higher than macro-F1.",
+          "Macro-F1 cannot be computed without probabilities."
+        ],
+        answer: 1,
+        rationale: "Macro treats classes equally; micro aggregates TP/FP/FN globally (thus dominated by frequent classes)."
+      }
+    ];
+
+    // ==========================================================
+    // Attempt control (Name+SAP cannot attempt twice on same browser)
+    // ==========================================================
+    const ATTEMPT_STORE_KEY = 'ca_quiz2_attempts_v1';
+    function normKey(name, sap){
+      return `${(name||'').trim().toLowerCase()}|${(sap||'').trim().toLowerCase()}`;
+    }
+    function loadAttempts(){
+      try{ return JSON.parse(localStorage.getItem(ATTEMPT_STORE_KEY) || '{}'); }
+      catch(e){ return {}; }
+    }
+    function saveAttempts(obj){
+      localStorage.setItem(ATTEMPT_STORE_KEY, JSON.stringify(obj));
+    }
+    function hasAttempted(name, sap){
+      const k = normKey(name, sap);
+      const db = loadAttempts();
+      return Boolean(db[k]);
+    }
+    function markAttempted(name, sap){
+      const k = normKey(name, sap);
+      const db = loadAttempts();
+      db[k] = { at: new Date().toISOString() };
+      saveAttempts(db);
+    }
+
+    // ==========================================================
+    // State + Elements
+    // ==========================================================
+    const state = {
+      started: false,
+      cancelled: false,
+      idx: 0,
+      answers: Array(QUESTIONS.length).fill(null),
+      timer: { totalMs: 20 * 60 * 1000, endAt: null, intervalId: null },
+      meta: { student: "", sap: "", evaluator: "", subject: "" }
+    };
+
+    const el = {
+      timerPill: document.getElementById('timerPill'),
+      timeLeft: document.getElementById('timeLeft'),
+      progressBar: document.getElementById('progressBar'),
+
+      screenSetup: document.getElementById('screenSetup'),
+      screenQuiz: document.getElementById('screenQuiz'),
+      screenResult: document.getElementById('screenResult'),
+      screenCancelled: document.getElementById('screenCancelled'),
+
+      studentName: document.getElementById('studentName'),
+      sapId: document.getElementById('sapId'),
+      evaluatorName: document.getElementById('evaluatorName'),
+      subjectName: document.getElementById('subjectName'),
+      startBtn: document.getElementById('startBtn'),
+      demoFill: document.getElementById('demoFill'),
+
+      mStudent: document.getElementById('mStudent'),
+      mSap: document.getElementById('mSap'),
+      mEvaluator: document.getElementById('mEvaluator'),
+      mSubject: document.getElementById('mSubject'),
+
+      qHeading: document.getElementById('qHeading'),
+      qTag: document.getElementById('qTag'),
+      qText: document.getElementById('qText'),
+      options: document.getElementById('options'),
+
+      resetBtn: document.getElementById('resetBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      submitBtn: document.getElementById('submitBtn'),
+
+      scoreLine: document.getElementById('scoreLine'),
+      scoreMeta: document.getElementById('scoreMeta'),
+      attemptTime: document.getElementById('attemptTime'),
+      review: document.getElementById('review'),
+      pdfBtn: document.getElementById('pdfBtn'),
+      restartBtn: document.getElementById('restartBtn'),
+      backToSetup: document.getElementById('backToSetup'),
+
+      overlay: document.getElementById('overlay'),
+      overlayTitle: document.getElementById('overlayTitle'),
+      overlayText: document.getElementById('overlayText'),
+      overlayBtn: document.getElementById('overlayBtn')
+    };
+
+    // ==========================================================
+    // Helpers
+    // ==========================================================
+    const pad2 = n => String(n).padStart(2,'0');
+    const now = () => Date.now();
+    const fmtTime = ms => {
+      const t = Math.max(0, ms);
+      const s = Math.floor(t/1000);
+      return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`;
+    };
+
+    function show(screen){
+      el.screenSetup.style.display = screen==='setup' ? 'block' : 'none';
+      el.screenQuiz.style.display = screen==='quiz' ? 'block' : 'none';
+      el.screenResult.style.display = screen==='result' ? 'block' : 'none';
+      el.screenCancelled.style.display = screen==='cancelled' ? 'block' : 'none';
+      el.timerPill.style.display = screen==='quiz' ? 'inline-flex' : 'none';
+    }
+
+    function setMeta(){
+      el.mStudent.textContent = state.meta.student || '--';
+      el.mSap.textContent = state.meta.sap || '--';
+      el.mEvaluator.textContent = state.meta.evaluator || '--';
+      el.mSubject.textContent = state.meta.subject || '--';
+    }
+
+    function overlay(title, text){
+      el.overlayTitle.textContent = title;
+      el.overlayText.textContent = text;
+      el.overlay.style.display = 'flex';
+    }
+
+    function closeOverlay(){ el.overlay.style.display = 'none'; }
+
+    // ==========================================================
+    // Setup validation
+    // ==========================================================
+    function validateSetup(){
+      const ok =
+        el.studentName.value.trim() &&
+        el.sapId.value.trim() &&
+        el.evaluatorName.value.trim() &&
+        el.subjectName.value.trim();
+      el.startBtn.disabled = !ok;
+    }
+
+    el.studentName.addEventListener('input', validateSetup);
+    el.sapId.addEventListener('input', validateSetup);
+    el.evaluatorName.addEventListener('input', validateSetup);
+    el.subjectName.addEventListener('input', validateSetup);
+
+    el.demoFill.addEventListener('click', ()=>{
+      el.studentName.value = 'Student Demo';
+      el.sapId.value = 'SAP123456';
+      el.evaluatorName.value = 'Evaluator Demo';
+      el.subjectName.value = 'Cognitive Analytics';
+      validateSetup();
+    });
+
+    // ==========================================================
+    // Anti-tab-switch: cancel on visibility loss
+    // ==========================================================
+    function stopTimer(){
+      if(state.timer.intervalId){
+        clearInterval(state.timer.intervalId);
+        state.timer.intervalId = null;
+      }
+    }
+
+    function cancelExam(reason){
+      if(!state.started || state.cancelled) return;
+      state.cancelled = true;
+      stopTimer();
+      show('cancelled');
+      overlay('Assessment Cancelled', reason || 'Tab/window switch detected.');
+      el.overlayBtn.onclick = () => { closeOverlay(); };
+    }
+
+    document.addEventListener('visibilitychange', ()=>{
+      if(state.started && !state.cancelled && document.hidden){
+        cancelExam('Tab/window switch detected (page became hidden).');
+      }
+    });
+
+    window.addEventListener('blur', ()=>{
+      if(!state.started || state.cancelled) return;
+      setTimeout(()=>{ if(document.hidden) cancelExam('Focus lost due to tab/app switch.'); }, 150);
+    });
+
+    // ==========================================================
+    // Timer (20 minutes total)
+    // ==========================================================
+    function startTimer(){
+      state.timer.endAt = now() + state.timer.totalMs;
+      tick();
+      state.timer.intervalId = setInterval(tick, 250);
+    }
+
+    function tick(){
+      const remaining = state.timer.endAt - now();
+      el.timeLeft.textContent = fmtTime(remaining);
+      if(remaining <= 0){
+        stopTimer();
+        overlay('Time is up', 'The 20-minute limit has ended. Your quiz will be submitted now.');
+        el.overlayBtn.onclick = ()=>{ closeOverlay(); submit(true); };
+      }
+    }
+
+    // ==========================================================
+    // Quiz rendering
+    // ==========================================================
+    function render(){
+      const q = QUESTIONS[state.idx];
+      const num = state.idx + 1;
+
+      el.qHeading.textContent = `Question ${num}`;
+      el.qTag.textContent = `${num} / ${QUESTIONS.length} | ${q.topic}`;
+      el.qText.innerHTML = q.q;
+
+      el.progressBar.style.width = `${((num-1)/QUESTIONS.length)*100}%`;
+
+      el.options.innerHTML = '';
+      const current = state.answers[state.idx];
+
+      q.options.forEach((opt, i)=>{
+        const id = `q${q.id}_opt${i}`;
+        const wrap = document.createElement('label');
+        wrap.className = 'opt';
+        wrap.htmlFor = id;
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = `q${q.id}`;
+        radio.id = id;
+        radio.checked = (current === i);
+        radio.addEventListener('change', ()=>{ state.answers[state.idx] = i; });
+
+        const txt = document.createElement('div');
+        txt.className = 'otext';
+        txt.innerHTML = opt;
+
+        wrap.appendChild(radio);
+        wrap.appendChild(txt);
+        el.options.appendChild(wrap);
+      });
+
+      const last = state.idx === QUESTIONS.length - 1;
+      el.nextBtn.style.display = last ? 'none' : 'inline-block';
+      el.submitBtn.style.display = last ? 'inline-block' : 'none';
+    }
+
+    function resetCurrent(){
+      state.answers[state.idx] = null;
+      el.options.querySelectorAll('input[type=radio]').forEach(r=> r.checked = false);
+    }
+
+    function next(){
+      if(state.idx < QUESTIONS.length - 1){
+        state.idx++;
+        render();
+      }
+    }
+
+    // ==========================================================
+    // Grading + Results
+    // ==========================================================
+    function stripHtml(html){
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || '';
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#039;');
+    }
+
+    function grade(){
+      let correct=0, incorrect=0, unanswered=0;
+      const detailed = QUESTIONS.map((q,i)=>{
+        const sel = state.answers[i];
+        const isNA = (sel===null || sel===undefined);
+        const ok = (!isNA && sel===q.answer);
+        if(isNA) unanswered++; else if(ok) correct++; else incorrect++;
+
+        return {
+          idx: i+1,
+          topic: q.topic,
+          q: q.q,
+          selected: isNA ? null : q.options[sel],
+          correct: q.options[q.answer],
+          ok,
+          isNA,
+          rationale: q.rationale
+        };
+      });
+
+      return {score: correct, correct, incorrect, unanswered, detailed};
+    }
+
+    function submit(autoFromTimer=false){
+      if(state.cancelled) return;
+      stopTimer();
+
+      const g = grade();
+      show('result');
+      el.timerPill.style.display = 'none';
+      el.progressBar.style.width = '100%';
+
+      const when = new Date();
+      el.attemptTime.textContent = when.toLocaleString();
+      el.scoreLine.textContent = `Score: ${g.score}/${QUESTIONS.length}`;
+      el.scoreMeta.textContent = `Correct: ${g.correct} | Incorrect: ${g.incorrect} | Unanswered: ${g.unanswered}`;
+
+      el.review.innerHTML = '';
+      g.detailed.forEach(d=>{
+        const div = document.createElement('div');
+        div.className = 'item';
+        const badgeClass = d.isNA ? 'na' : (d.ok ? 'good' : 'bad');
+        const badgeText = d.isNA ? 'Unanswered' : (d.ok ? 'Correct' : 'Incorrect');
+
+        div.innerHTML = `
+          <div class="top">
+            <div class="n">Q${d.idx} | <span style="color:var(--muted); font-weight:600">${escapeHtml(d.topic)}</span></div>
+            <div class="badge ${badgeClass}">${badgeText}</div>
+          </div>
+          <div class="q">${escapeHtml(stripHtml(d.q))}</div>
+          <p class="a"><strong>Your answer:</strong> ${d.selected ? escapeHtml(stripHtml(d.selected)) : '<em>None</em>'}<br/>
+          <strong>Correct answer:</strong> ${escapeHtml(stripHtml(d.correct))}<br/>
+          <strong>Why:</strong> ${escapeHtml(d.rationale)}</p>
+        `;
+        el.review.appendChild(div);
+      });
+
+      el.pdfBtn.onclick = ()=> generatePDF(g);
+
+      // Auto-generate PDF at end (best effort; browsers may block auto-download)
+      try{
+        generatePDF(g);
+      } catch(e){
+        if(!autoFromTimer){
+          overlay('PDF Download', 'Auto PDF generation was blocked or jsPDF failed to load. Please click “Download PDF Report”.');
+          el.overlayBtn.onclick = closeOverlay;
+        }
+      }
+
+      el.overlayBtn.onclick = closeOverlay;
+    }
+
+    // ==========================================================
+    // PDF generation
+    // ==========================================================
+    function generatePDF(graded){
+      if(!window.jspdf || !window.jspdf.jsPDF){
+        throw new Error('jsPDF not loaded');
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'pt', format:'a4' });
+
+      const margin = 40;
+      const lineH = 16;
+      let y = margin;
+
+      function add(text, size=11, bold=false){
+        doc.setFont('helvetica', bold ? 'bold' : 'normal');
+        doc.setFontSize(size);
+        const maxW = 595 - margin*2;
+        const lines = doc.splitTextToSize(text, maxW);
+        for(const ln of lines){
+          if(y > 802){ doc.addPage(); y = margin; }
+          doc.text(ln, margin, y);
+          y += lineH;
+        }
+      }
+
+      add('Cognitive Analytics Quiz 2 - Report', 16, true);
+      y += 6;
+
+      const stamp = new Date().toLocaleString();
+      add(`Student: ${state.meta.student}`, 11, true);
+      add(`SAP ID: ${state.meta.sap}`);
+      add(`Evaluator: ${state.meta.evaluator}`);
+      add(`Subject: ${state.meta.subject}`);
+      add(`Attempted on: ${stamp}`);
+      add(`Score: ${graded.score}/${QUESTIONS.length} (Correct: ${graded.correct}, Incorrect: ${graded.incorrect}, Unanswered: ${graded.unanswered})`, 11, true);
+
+      y += 10;
+      add('Detailed Review:', 12, true);
+      y += 4;
+
+      graded.detailed.forEach(d=>{
+        add(`Q${d.idx}. ${stripHtml(d.q)}`, 11, true);
+        add(`Your answer: ${d.selected ? stripHtml(d.selected) : 'None'}`);
+        add(`Correct answer: ${stripHtml(d.correct)}`);
+        add(`Result: ${d.isNA ? 'Unanswered' : (d.ok ? 'Correct' : 'Incorrect')}`);
+        add(`Why: ${d.rationale}`);
+        y += 8;
+      });
+
+      const safe = (state.meta.student || 'student').replace(/[^a-z0-9]+/gi,'_');
+      const safeSap = (state.meta.sap || 'sap').replace(/[^a-z0-9]+/gi,'_');
+      doc.save(`Cognitive_Analytics_Quiz2_${safe}_${safeSap}.pdf`);
+    }
+
+    // ==========================================================
+    // Events
+    // ==========================================================
+    el.startBtn.addEventListener('click', ()=>{
+      const name = el.studentName.value.trim();
+      const sap = el.sapId.value.trim();
+      const evalName = el.evaluatorName.value.trim();
+      const subject = el.subjectName.value.trim();
+
+      if(hasAttempted(name, sap)){
+        overlay('Attempt Blocked', 'An attempt with the same Name + SAP ID has already been recorded on this device/browser. A second attempt is not allowed.');
+        el.overlayBtn.onclick = closeOverlay;
+        return;
+      }
+
+      // Lock attempt immediately (even if user cancels later)
+      markAttempted(name, sap);
+
+      state.meta.student = name;
+      state.meta.sap = sap;
+      state.meta.evaluator = evalName;
+      state.meta.subject = subject;
+      setMeta();
+
+      state.started = true;
+      state.cancelled = false;
+      state.idx = 0;
+      state.answers = Array(QUESTIONS.length).fill(null);
+
+      show('quiz');
+      render();
+      startTimer();
+      el.overlayBtn.onclick = closeOverlay;
+    });
+
+    el.resetBtn.addEventListener('click', resetCurrent);
+    el.nextBtn.addEventListener('click', next);
+
+    el.submitBtn.addEventListener('click', ()=>{
+      overlay('Submit Quiz', 'You are about to submit your answers. Click OK to continue.');
+      el.overlayBtn.onclick = ()=>{ closeOverlay(); submit(false); };
+    });
+
+    el.restartBtn.addEventListener('click', ()=>{
+      stopTimer();
+      state.started = false;
+      state.cancelled = false;
+      state.idx = 0;
+      state.answers = Array(QUESTIONS.length).fill(null);
+      show('setup');
+      el.progressBar.style.width = '0%';
+      setMeta();
+    });
+
+    el.backToSetup.addEventListener('click', ()=>{
+      stopTimer();
+      state.started = false;
+      state.cancelled = false;
+      show('setup');
+      closeOverlay();
+    });
+
+    el.overlayBtn.addEventListener('click', closeOverlay);
+
+    // Init
+    show('setup');
+    setMeta();
+    validateSetup();
+  </script>
+</body>
+</html>
